@@ -21,7 +21,7 @@ def count_columns_by_dtype(df):
         pd.DataFrame: A DataFrame containing the data types and their corresponding counts in the input DataFrame.
     """
     # Group the columns in the DataFrame by their data type and count the columns in each group
-    col_counts = df.dtypes.groupby(df.dtypes).count()
+    col_counts = df.dtypes.groupby(df.dtypes.astype(str)).count()
 
     # Create a DataFrame from the column counts
     col_counts_df = pd.DataFrame({'Data Type': col_counts.index.astype(str), 'Count': col_counts.values})
@@ -163,6 +163,45 @@ def plot_histograms_and_boxplots(df):
 
         plt.tight_layout()
         plt.show()
+
+
+def summarize_datetime_columns(df):
+    """
+    Create a summary DataFrame for datetime and timedelta columns in the input DataFrame.
+    
+    The summary includes the column type, count of non-NaT values, count of NaT values, minimum, maximum,
+    and range of values in the column.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame with datetime and timedelta columns to summarize.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the summary statistics for each datetime and timedelta column.
+    """
+    # Select datetime and timedelta columns
+    datetime_cols = df.select_dtypes(include=['datetime64', 'timedelta64']).columns
+
+    # Create a list to store the results for each column
+    results_list = []
+
+    # Iterate over each datetime and timedelta column
+    for col in datetime_cols:
+        # Determine the counts of non-NaT and NaT values in the column
+        non_nat_count = df[col].count()
+        nat_count = df[col].isna().sum()
+
+        # Calculate the minimum, maximum, and range of values in the column
+        minimum = df[col].min()
+        maximum = df[col].max()
+        value_range = maximum - minimum
+
+        # Add the results to the results list for this column
+        results_list.append([col, str(df[col].dtype), non_nat_count, nat_count, minimum, maximum, value_range])
+
+    # Create the result DataFrame from the list of results
+    datetime_summary_df = pd.DataFrame(results_list, columns=["Column", "Column Type", "Non-NaT Count", "NaT Count", "Min", "Max", "Range"])
+
+    return datetime_summary_df
 
 
 def convert_binary_to_boolean(df):
